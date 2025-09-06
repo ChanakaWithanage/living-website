@@ -8,8 +8,16 @@ export default function SnakeGame({ onClose }) {
   const [dir, setDir] = useState({ x: 1, y: 0 })
   const [gameOver, setGameOver] = useState(false)
   const [score, setScore] = useState(0)
-  const size = 20
+  const [tileSize, setTileSize] = useState(20)
+
   const tileCount = 20
+
+  // Calculate canvas size dynamically
+  const updateCanvasSize = () => {
+    const maxCanvas = 400 // max size for desktop
+    const width = Math.min(window.innerWidth - 40, maxCanvas)
+    setTileSize(Math.floor(width / tileCount))
+  }
 
   // Reset game
   const resetGame = () => {
@@ -19,6 +27,12 @@ export default function SnakeGame({ onClose }) {
     setScore(0)
     setGameOver(false)
   }
+
+  useEffect(() => {
+    updateCanvasSize()
+    window.addEventListener("resize", updateCanvasSize)
+    return () => window.removeEventListener("resize", updateCanvasSize)
+  }, [])
 
   useEffect(() => {
     const ctx = canvasRef.current.getContext("2d")
@@ -49,31 +63,30 @@ export default function SnakeGame({ onClose }) {
           x: Math.floor(Math.random() * tileCount),
           y: Math.floor(Math.random() * tileCount),
         })
-        setScore((prev) => prev + 1) // increase score
+        setScore((prev) => prev + 1)
       } else {
         newSnake.pop()
       }
 
       setSnake(newSnake)
 
-      // Draw board
+      // Draw
       ctx.fillStyle = "#111"
-      ctx.fillRect(0, 0, size * tileCount, size * tileCount)
+      ctx.fillRect(0, 0, tileSize * tileCount, tileSize * tileCount)
 
-      // Draw snake
       ctx.fillStyle = "lime"
       newSnake.forEach((s) =>
-        ctx.fillRect(s.x * size, s.y * size, size - 2, size - 2)
+        ctx.fillRect(s.x * tileSize, s.y * tileSize, tileSize - 2, tileSize - 2)
       )
 
-      // Draw food
       ctx.fillStyle = "red"
-      ctx.fillRect(food.x * size, food.y * size, size - 2, size - 2)
+      ctx.fillRect(food.x * tileSize, food.y * tileSize, tileSize - 2, tileSize - 2)
     }, 120)
 
     return () => clearInterval(interval)
-  }, [snake, dir, food, gameOver])
+  }, [snake, dir, food, gameOver, tileSize])
 
+  // Keyboard controls
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key === "ArrowUp" && dir.y !== 1) setDir({ x: 0, y: -1 })
@@ -85,9 +98,17 @@ export default function SnakeGame({ onClose }) {
     return () => window.removeEventListener("keydown", handleKey)
   }, [dir])
 
+  // Touch controls for mobile
+  const handleTouch = (direction) => {
+    if (direction === "up" && dir.y !== 1) setDir({ x: 0, y: -1 })
+    if (direction === "down" && dir.y !== -1) setDir({ x: 0, y: 1 })
+    if (direction === "left" && dir.x !== 1) setDir({ x: -1, y: 0 })
+    if (direction === "right" && dir.x !== -1) setDir({ x: 1, y: 0 })
+  }
+
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-white p-4 rounded shadow-lg relative">
+    <div className="fixed inset-0 bg-black/70 flex flex-col items-center justify-center z-50 px-4">
+      <div className="bg-white p-4 rounded shadow-lg relative w-full max-w-md">
         <button
           onClick={onClose}
           className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded"
@@ -111,10 +132,19 @@ export default function SnakeGame({ onClose }) {
 
         <canvas
           ref={canvasRef}
-          width={size * tileCount}
-          height={size * tileCount}
-          className="border"
+          width={tileSize * tileCount}
+          height={tileSize * tileCount}
+          className="border mx-auto"
         />
+
+        {/* Touch controls for mobile */}
+        <div className="grid grid-cols-3 gap-2 mt-4 justify-items-center sm:hidden">
+          <button onClick={() => handleTouch("up")} className="col-span-3 bg-gray-200 px-4 py-2 rounded">⬆</button>
+          <button onClick={() => handleTouch("left")} className="bg-gray-200 px-4 py-2 rounded">⬅</button>
+          <div></div>
+          <button onClick={() => handleTouch("right")} className="bg-gray-200 px-4 py-2 rounded">➡</button>
+          <button onClick={() => handleTouch("down")} className="col-span-3 bg-gray-200 px-4 py-2 rounded">⬇</button>
+        </div>
       </div>
     </div>
   )

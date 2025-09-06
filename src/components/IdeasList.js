@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabaseClient"
 import SnakeGame from "./SnakeGame" // <- your pixel game component
+import TodoBoard from "./TodoBoard"
 
 const stickyColors = [
   "bg-[#fef3c7]", // pale yellow
@@ -24,6 +25,7 @@ function getRandomStyle() {
 export default function IdeasList() {
   const [ideas, setIdeas] = useState([])
   const [showGame, setShowGame] = useState(false) // modal toggle
+  const [showTodo, setShowTodo] = useState(false)
 
   useEffect(() => {
     fetchIdeas()
@@ -64,9 +66,11 @@ export default function IdeasList() {
 
   // handle generic "Try it" button actions
   function handleAction(idea) {
-    // for now, only open the Snake game modal
-    // later, extend with other feature types
-    setShowGame(true)
+    if (idea.text.toLowerCase().includes("game")) {
+      setShowGame(true)
+    } else if (idea.text.toLowerCase().includes("to-do")) {
+      setShowTodo(true)
+    }
   }
 
   if (!ideas.length) {
@@ -143,6 +147,7 @@ export default function IdeasList() {
 
       {/* Snake game modal */}
       {showGame && <SnakeGame onClose={() => setShowGame(false)} />}
+      {showTodo && <TodoBoard onClose={() => setShowTodo(false)} />}
     </>
   )
 }

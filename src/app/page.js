@@ -37,8 +37,9 @@ export default function Page() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-100 text-gray-500 text-center py-4 text-sm">
-        © {new Date().getFullYear()} SparksWall
+      <footer className="bg-white/90 text-gray-500 text-center py-4 text-sm rounded-t-2xl">
+        SparksWall © {new Date().getFullYear()} — A website built by you.
+        Drop your ideas, vote on favorites, and watch them turn into real features.
       </footer>
     </main>
   )
